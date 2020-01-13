@@ -43,7 +43,7 @@ python3 deconz2mqtt.py --config deconz2mqtt.yaml
 
 3. Install dependencies
    ```
-   env/bin/python3 -m pip install --update pip -r requirements.txt
+   env/bin/python -m pip install --upgrade pip -r requirements.txt
    ```
 
 4. Edit and install configuration file `deconz2mqtt.yaml`. I prefer installing it in `/etc`
@@ -53,7 +53,7 @@ python3 deconz2mqtt.py --config deconz2mqtt.yaml
 
 5. Check whether everything works as expected
    ```
-   env/bin/python3 deconz2mqtt.py --config /etc/deconz2mqtt.yaml
+   env/bin/python deconz2mqtt.py --config /etc/deconz2mqtt.yaml
    ```
 
 6. Create system user which will be used to run service process (for the purpose of this instruction 
