@@ -1,0 +1,12 @@
+[Unit]
+Description=deconz2mqtt
+Requires=network.target
+
+[Service]
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=/opt/deconz2mqtt
+ExecStart=/opt/deconz2mqtt/env/bin/python3 /opt/deconz2mqtt/deconz2mqtt.py --config /etc/deconz2mqtt.yaml
+User=deconz
+
+[Install]
+WantedBy=multi-user.target
