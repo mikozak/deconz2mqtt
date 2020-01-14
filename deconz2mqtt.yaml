@@ -15,6 +15,6 @@ mqtt:
     auto_reconnect: True
     reconnect_max_interval: 10
     reconnect_retries: 3
-  topic: deconz
+  topic_prefix: deconz
 deconz:
   uri: "ws://localhost:8080/ws"

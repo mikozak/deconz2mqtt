@@ -20,10 +20,10 @@ def _config_value(config: dict, name: str, default = None):
 
 async def mqtt_publisher(config: dict, message_queue: asyncio.Queue) -> None:
     log = logging.getLogger('deconz2mqtt.mqtt_publisher')
-    mqtt = MQTTClient(config=config)
+    mqtt = MQTTClient(config=_config_value(config, 'client'))
     log.info('Connecting to MQTT...')
     try:
-        await mqtt.connect(uri=config['uri'], cleansession=config['cleansession'])
+        await mqtt.connect(uri=_config_value(config, 'client.uri'), cleansession=_config_value(config, 'client.cleansession'))
     except ConnectException as ce:
         log.error('Can\'t connect to MQTT: {}'.format(ce))
     log.info('Connected to MQTT')
@@ -49,13 +49,16 @@ async def mqtt_publisher(config: dict, message_queue: asyncio.Queue) -> None:
         if id is None:
             log.warn('Message without id. Message={}'.format(message))
             continue
-        state = message_json.get('state', None)
-        config = message_json.get('config', None)
-        if state is None and config is None:
+        event_state = message_json.get('state', None)
+        event_config = message_json.get('config', None)
+        if event_state is None and event_config is None:
             log.debug('Message without state or config. Message={}'.format(message))
             continue
-        mqtt_topic = 'deconz/{}/{}/{}'.format(r, id, 'state' if state is not None else 'config')
-        mqtt_payload = state if state is not None else config
+        # prepare mqtt topic
+        mqtt_topic = _config_value(config, 'topic_prefix', 'deconz')
+        mqtt_topic += '/{}/{}/{}'.format(r, id, 'state' if event_state is not None else 'config')
+        # prepare mqtt payload
+        mqtt_payload = event_state if event_state is not None else event_config
         mqtt_payload = json.dumps(mqtt_payload).encode('utf-8')
         log.debug('Publishing: topic={} payload={}'.format(mqtt_topic, mqtt_payload))
         await mqtt.publish(mqtt_topic, mqtt_payload)
@@ -70,7 +73,7 @@ async def deconz_message_reader(config: dict, message_queue: asyncio.Queue) -> N
 
 async def main(config: dict):
     message_queue = asyncio.Queue(10)
-    mqtt = asyncio.create_task(mqtt_publisher(_config_value(config, 'mqtt.client'), message_queue))
+    mqtt = asyncio.create_task(mqtt_publisher(_config_value(config, 'mqtt'), message_queue))
     deconz = asyncio.create_task(deconz_message_reader(_config_value(config, 'deconz'), message_queue))
 
     await deconz
