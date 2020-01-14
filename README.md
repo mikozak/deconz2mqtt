@@ -1,13 +1,9 @@
 # deconz2mqtt
 Simple bridge between [deCONZ websocket API](https://dresden-elektronik.github.io/deconz-rest-doc/websocket/) and MQTT broker.
 
-## Features
-Reading deCONZ websocket messages of type `event` and event type `changed` and publishing them to MQTT broker.
-Note that message is published to MQTT if it contains `state` or `config` property.
 
-### Example: state changes message
-
-deCONZ websocket message (state changes)
+*deconz2mqtt.py* reads deCONZ websocket messages, parse them and converts to MQTT message.
+Let's see this on example. Following deCONZ websocket message:
 ```
 {"e":"changed","id":"3","r":"sensors","state":{"buttonevent":1002,"lastupdated":"2020-01-11T23:35:14"},"t":"event","uniqueid":"00:15:8d:00:02:7c:93:43-01-0006"}
 ```
@@ -17,66 +13,82 @@ is published to MQTT with topic `deconz/sensors/3/state` (`deconz` part of the t
 {"buttonevent": 1002, "lastupdated": "2020-01-11T23:35:14"}
 ```
 
-## Requirements
-* Python: 3.7
-* deCONZ REST API: 2.04.40
+# Installation
 
-# Running
-First you need to configure MQTT and deCONZ details in `deconz2mqtt.yaml` then run you can start `deconz2mqtt.py`
-```
-python3 deconz2mqtt.py --config deconz2mqtt.yaml
-```
+### You will need
+* *deconz2mqtt.py* - script which does the job
+* *deconz2mqtt.yaml* - configuration file
+* Python (at least 3.7)
+* Running deCONZ REST API (at least 2.04.40)
+* Running MQTT broker
 
-# Running as a service
+### Installation steps
 
-1. Clone this repository to preferred location, for example `/opt` directory
-   ```
-   cd /opt
-   git clone https://github.com/mikozak/deconz2mqtt.git
-   ```
+1. Create directory (for example */opt/deconz2mqtt*) and put inside *deconz2mqtt.py*
+    ```
+    cd /opt
+    mkdir deconz2mqtt
+    cd deconz2mqtt
+    curl -o deconz2mqtt.py 'https://raw.githubusercontent.com/mikozak/deconz2mqtt/master/deconz2mqtt.py'
+    ```
 
-2. Create python virtual environment for running service (this is optional step, however I recommend it)
-   ```
-   cd deconz2mqtt/
-   python3 -m venv env
-   ```
+2. Create python virtual environment 
+    ```
+    python3 -m venv env
+    ```
 
 3. Install dependencies
-   ```
-   env/bin/python -m pip install --upgrade pip -r requirements.txt
-   ```
+    ```
+    curl -o requirements.txt 'https://raw.githubusercontent.com/mikozak/deconz2mqtt/master/requirements.txt'
+    env/bin/python -m pip install --upgrade pip -r requirements.txt
+    ```
 
-4. Edit and install configuration file `deconz2mqtt.yaml`. I prefer installing it in `/etc`
-   ```
-   sudo cp deconz2mqtt.yaml /etc/
-   ```
+3. Install configuration file (for example in */etc*)
+    ```
+    sudo curl -o /etc/deconz2mqtt.yaml 'https://raw.githubusercontent.com/mikozak/deconz2mqtt/master/deconz2mqtt.yaml'
+    ```
 
-5. Check whether everything works as expected
-   ```
-   env/bin/python deconz2mqtt.py --config /etc/deconz2mqtt.yaml
-   ```
+4. Edit configuration file installed in previous step. You need to veryfy/update at least two parameters
+   * MQTT connection details
+        ```
+        mqtt:
+            client:
+            uri: "mqtt://localhost"
+        ```
 
-6. Create system user which will be used to run service process (for the purpose of this instruction 
-   user named *deconz* will be used)
+   * deCONZ websocket connection details
+        ```
+        deconz:
+            uri: "ws://localhost:8080/ws"
+        ```
 
-   ```
-   sudo useradd -r deconz
-   ```
+5. Run it
+    ```
+    env/bin/python deconz2mqtt.py --config /etc/deconz2mqtt.yaml
+    ```
 
-7. Edit `deconz2mqtt.service` and make sure paths in `WorkingDirectory` and `ExecStart` are valid (and absolute!)
+### Installation as a service
 
+1. Create system user which will be used to run service process (for the purpose of this instruction user named *deconz* will be used)
+    ```
+    sudo useradd -r deconz
+    ```
 
-8. Install service
-   ```
-   sudo cp deconz2mqtt.service /etc/systemd/system/
-   ```
+2. Install service
+    ```
+    sudo curl -o /etc/systemd/system/deconz2mqtt.service 'https://raw.githubusercontent.com/mikozak/deconz2mqtt/master/deconz2mqtt.service'
+    ```
 
-9. Run service
-   ```
-   sudo systemctl start deconz2mqtt
-   ```
+3. Verify and edit if needed in `/etc/systemd/system/deconz2mqtt.service`:
+    * `WorkingDirectory` and `ExecStart` paths are valid (and absolute!)
+    * `User` is correct (equals username created in step 1)
 
-   If you want to start the service automatically after system starts just enable it
-   ```
-   sudo systemctl enable deconz2mqtt
-   ```
+4. Start service
+    ```
+    sudo systemctl start deconz2mqtt
+    ```
+
+    If you want to start the service automatically after system restart you need to enable it
+    ```
+    sudo systemctl enable deconz2mqtt
+    ```
