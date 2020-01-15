@@ -1,9 +1,9 @@
 # deconz2mqtt
-Simple bridge between [deCONZ websocket API](https://dresden-elektronik.github.io/deconz-rest-doc/websocket/) and MQTT broker.
+Simple bridge between [Conbee](https://phoscon.de/en/conbee2) (its [deCONZ websocket API](https://dresden-elektronik.github.io/deconz-rest-doc/websocket/)) and MQTT broker.
 
 
-*deconz2mqtt.py* reads deCONZ websocket messages, parse them and converts to MQTT message.
-Let's see this on example. Following deCONZ websocket message:
+*deconz2mqtt.py* reads deCONZ messages, parses them and converts to MQTT message.
+Let's see this on example. Following deCONZ message:
 ```
 {"e":"changed","id":"3","r":"sensors","state":{"buttonevent":1002,"lastupdated":"2020-01-11T23:35:14"},"t":"event","uniqueid":"00:15:8d:00:02:7c:93:43-01-0006"}
 ```
@@ -48,7 +48,7 @@ is published to MQTT with topic `deconz/sensors/3/state` (`deconz` part of the t
     sudo curl -o /etc/deconz2mqtt.yaml 'https://raw.githubusercontent.com/mikozak/deconz2mqtt/master/deconz2mqtt.yaml'
     ```
 
-4. Edit configuration file installed in previous step. You need to veryfy/update at least two parameters
+4. Edit configuration file installed in previous step. You need to verify/update at least two parameters
    * MQTT connection details
         ```
         mqtt:
