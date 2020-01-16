@@ -3,12 +3,12 @@ Simple bridge between [Conbee](https://phoscon.de/en/conbee2) (its [deCONZ webso
 
 
 *deconz2mqtt.py* reads deCONZ messages, parses them and converts to MQTT message.
-Let's see this on example. Following deCONZ message:
+Let's see an example, following deCONZ message:
 ```
 {"e":"changed","id":"3","r":"sensors","state":{"buttonevent":1002,"lastupdated":"2020-01-11T23:35:14"},"t":"event","uniqueid":"00:15:8d:00:02:7c:93:43-01-0006"}
 ```
 
-is published to MQTT with topic `deconz/sensors/3/state` (`deconz` part of the topic can be configured) and following payload
+is published to MQTT with topic `deconz/sensors/3/state` (`deconz` part of the topic can be configured) and following payload:
 ```
 {"buttonevent": 1002, "lastupdated": "2020-01-11T23:35:14"}
 ```
