@@ -76,8 +76,9 @@ async def main(config: dict):
     mqtt = asyncio.create_task(mqtt_publisher(_config_value(config, 'mqtt'), message_queue))
     deconz = asyncio.create_task(deconz_message_reader(_config_value(config, 'deconz'), message_queue))
 
-    await deconz
-    await mqtt
+    done, pending = await asyncio.wait([mqtt, deconz], return_when=asyncio.FIRST_COMPLETED)
+    for task in pending:
+        task.cancel()
 
 if __name__ == "__main__":
 
