@@ -65,18 +65,26 @@ async def mqtt_publisher(config: dict, message_queue: asyncio.Queue) -> None:
 
 async def deconz_message_reader(config: dict, message_queue: asyncio.Queue) -> None:
     log = logging.getLogger('deconz2mqtt.deconz_message_reader')
-    async with websockets.connect(config['uri']) as websocket:
-        while True:
-            message = await websocket.recv()
-            log.debug('Got message: {}'.format(message))
-            message_queue.put_nowait(message)
+    while True:
+        try:
+            async with websockets.connect(config['uri']) as websocket:
+                log.info('Connected')
+                async for message in websocket:
+                    log.debug('Got message: {}'.format(message))
+                    message_queue.put_nowait(message)
+        except (OSError, websockets.exceptions.ConnectionClosedError) as error:
+            log.error("Can't read message from wbesockets. {}: {}".format(error.__class__.__name__, error))
+            log.info('Connection retry in 20 seconds')
+            await asyncio.sleep(20)
 
 async def main(config: dict):
     message_queue = asyncio.Queue(10)
     mqtt = asyncio.create_task(mqtt_publisher(_config_value(config, 'mqtt'), message_queue))
     deconz = asyncio.create_task(deconz_message_reader(_config_value(config, 'deconz'), message_queue))
 
-    done, pending = await asyncio.wait([mqtt, deconz], return_when=asyncio.FIRST_COMPLETED)
+    done, pending = await asyncio.wait([mqtt, deconz], return_when=asyncio.FIRST_EXCEPTION)
+    for task in done:
+        task.result()
     for task in pending:
         task.cancel()
 
